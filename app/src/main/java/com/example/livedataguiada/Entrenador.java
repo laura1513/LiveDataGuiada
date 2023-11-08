@@ -7,6 +7,8 @@ import java.util.concurrent.ScheduledFuture;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 
+import androidx.lifecycle.LiveData;
+
 public class Entrenador {
 
     interface EntrenadorListener {
@@ -16,6 +18,27 @@ public class Entrenador {
     Random random = new Random();
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     ScheduledFuture<?> entrenando;
+
+    LiveData<String> ordenLiveData = new LiveData<String>() {
+        @Override
+        protected void onActive() {
+            super.onActive();
+
+            iniciarEntrenamiento(new EntrenadorListener() {
+                @Override
+                public void cuandoDeLaOrden(String orden) {
+                    postValue(orden);
+                }
+            });
+        }
+
+        @Override
+        protected void onInactive() {
+            super.onInactive();
+
+            pararEntrenamiento();
+        }
+    };
 
     void iniciarEntrenamiento(EntrenadorListener entrenadorListener) {
         if (entrenando == null || entrenando.isCancelled()) {
@@ -41,4 +64,5 @@ public class Entrenador {
             entrenando.cancel(true);
         }
     }
+
 }
